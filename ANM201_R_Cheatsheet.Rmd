@@ -1,0 +1,333 @@
+---
+title: "ANM201 R Cheat Sheet"
+author: "Oakleigh Wilson - oakleigh.wilson@research.usc.edu.au"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 4
+    number_sections: true
+    theme: united
+    highlight: tango
+  pdf_document:
+    toc: true
+    toc_depth: '4'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, include = TRUE, error = TRUE, fig.width = 8, fig.height = 5)
+```
+
+# Welcome to R for ANM201
+
+If you haven't used it before, R code can be as confusing as learning to speak in another language. But just like learning another language, it's possible to understand and speak once you have the fundamentals (and some practice) down! No matter how confusing and overwhelming it might feel at the beginning, we truly promise that it's only a matter of time until you get the hang of it! We want to help you as much as possible along that journey and have put together this little cheat-sheet to support what we're learning together in class.
+
+In this cheat sheet we'll familiarise ourselves with the idea of R, how to navigate inside of RStudio, the basic mechanics of programming in R, and step-by-step instructions for some of the common tasks we'll encounter throughout ANM201.
+
+## Why Use R
+The most common question is why we're using R, so we'll get that out of the way now.
+
+You probably signed up for an animal ecology degree because you love animals, and we understand that a lot of you mainly want to be out there doing fieldwork, catching, or caring for animals, and might feel that learning R isn't helping you on that path. However! In the 'digital age' (which is the time period that we're in now) there are very few careers where you won't be adding to, working with, or analysing data, and R is the most common tool for that in ecology --- so it's important that you have some exposure to it. You don't have to be an expert programmer to start using R for ecology. Even being able to use it for basic data visualisation and analysis will go a long way.
+
+Plus, you might find that you actually like it! R is a very powerful tool for navigating, summarising, and visualising data. It can do a lot of very very cool things from statistics to machine learning, building beautiful graphs, and making accessible reports (note: we built this cheat-sheet in R!). If you are in any way data and computational inclined, R will be your friend!
+
+# Using R
+
+## What Is R
+
+You can think of R like a fancy way to work with excel spreadsheets. The code we write is the same as the 'functions' you enter at the top of an excel sheet (e.g., =SUM(A1:A15)). It's easy to use excel for basic things like addition and summarisation, but proper statistics can get really complicated and difficult to manage in 1 excel function. Plus, it's hard to work with more than one excel sheet at a time. And the graphs are ugly. And you have to do it manually every time, which is easy to forget. There is a time and a place for excel, but some problems need a bit more. 
+
+R allows us to work with long, multi-stage calculations that can combine multiple data sources in complicated ways. R code is written once and can then be run multiple times in the exact same way. And it makes beautiful graphs.
+
+## Navigating R via RStudio
+
+'R' is the programming language (the grammar of the functions - like how excel has a grammar for its commands) designed specially to manipulate data and do statistics. 'RStudio' is an app designed to help us write and interact with the R language.
+
+The RStudio app has a few main screens inside of it. Don't panic if yours looks different to the display below! The actual display of the app can look different depending on how you personalise it, but the basic mechanics are always the same.
+
+![Panels you might see in your RStudio.](C:/Users/oaw001/OneDrive - University of the Sunshine Coast/Tutoring/Ecophys/images/RStudio_screen_basics.png)
+
+The key points are:
+
+  * We type our code in the code editor
+  * We run that code using "Run" in the top right of the code editing panel (or ctrl+Enter)
+  * The outcome of that code is displayed in the console
+  * Objects (e.g., variables or datasets) are stored in the Environment
+  * R can use objects in the Environment
+  
+#### Setting the working directory
+The "working directory" is essentially what RStudio can see. It is displayed in the "Files" console (might be hiding behind plots!). Any data on our computer (e.g., excel sheets, txt files, or R code) that we want to use in RStudio, we have to be able to see in the Files display (or define an exact path... but don't worry about that for now). 
+
+To 'set' our working directory to the place we want it to be, there are several options. The first option (yellow method in the image) is to navigate Session -> Set Working Directory -> Choose Directory (shortcut: Crtl+Shift+H). If this has worked, the 'Files' display will be set to the location you selected and you should be able to see your data and code... open from there!
+
+The second option is to manually set the working directory by pasting the address into your Code Editor or console.
+
+```{r setting working directory}
+# setwd("C:/Users/myName/Desktop/ANM201/Tutorial_1") # notice that they are all forward / slashes, NOT back \ slashes.
+```
+
+![2 options for setting your working directory.](C:/Users/oaw001/OneDrive - University of the Sunshine Coast/Tutoring/Ecophys/images/Setting_working_directory.png)
+
+## Using R in R Studio
+
+We are now going to learn about basic commands in R (these are the functions from excel). Open up an R session and follow along if you'd like! 
+
+### Loading Example data
+
+For this example, we can use some of the example data preloaded into R. Let's go ahead and load it in now using the following commands. Copy the following into the Code Editor and then 'Run' them. You should see the following table display in the Console.
+
+```{r loading in the toy data}
+data("iris") # this will load in some data about iris flowers # this hashtag is a comment (i.e., just for us humans, RStudio won't read or do anything that's commented)
+head(iris) # this shows us the first few rows of iris
+```
+
+### Subsetting Data
+Subsetting data is when we select a portion of our data. In Excel if we wanted to select the first Sepal.Length we could just click on it (cell A2) but in R we can get to it by indexing inside the data.
+
+```{r subsetting data}
+iris[1,1] # the name of the data with square brackets and the coordinates of the point as row, column
+```
+
+Alternately, if we wanted the Sepal.Length but didn't know the coordinate of that column, we could call it by name.
+
+```{r subsetting data 2}
+iris[1,"Sepal.Length"] # the same format, but this time we use the name of the column
+```
+
+If we wanted all of the data in the Sepal.Length column --- not just the first entry --- we could index for the entire column by leaving a blank instead of the row number (in excel this would be like A:A). Alternately, you can source the entire row by leaving the column blank.
+
+```{r subsetting data 3}
+iris[ ,"Sepal.Length"] # leave the row number blank
+```
+
+```{r subsetting data 4}
+iris[1,] # leave the column blank
+```
+
+You can use this same system for more complex indexing as well, to select very specific things. Define the rows you want and the columns you want. 
+```{r subsetting data 5}
+iris[c(1:4),c("Sepal.Length", "Petal.Length")] #c() denotes a list of things
+# note that the row numbers are just numbers but column "names" have quotation marks
+```
+
+Rather than always just printing this to the console, you can assign this subsetted data to a new object name using the <- assignment arrow. The assignment arrow '<-' means anything on the right of the arrow is now known as the label on the left of the arrow.
+
+```{r subsetting data 6}
+subset_df <- iris[c(1:4),c("Sepal.Length", "Petal.Length")] # assign the subset to subset_df
+subset_df # now subset_df now contains that specific data!
+```
+
+#### Introduction to Piping
+While the ways I've shown you are above are really fast and simple ways to subset data, I personally find that they can become quite complicated and hard to read. Instead, you can use a different kind of function grammar. Just how in excel you can write =SUM(A1+A2+A3) or =SUM(A1:A3), this new notation (known as piping) is just another way of writing the same thing.
+
+Piping is a part of the 'tidyverse' package. Packages in R are code pre-written by someone else that we can import into our R to use for ourselves.
+```{r install tidyverse}
+# the first time you ever run this on your computer it will do a big download from the internet that will run in your console. Just wait for it to finish.
+# install.packages("tidyverse") # remove this comment when you run in your code!
+library(tidyverse)
+```
+
+We can now use piping which looks like:
+```{r subsetting data 7}
+data("iris") # remember that this brings iris into the environment
+subset_df2 <- iris %>% # assign the subset of the df to object name subset_df
+  select(Sepal.Length, Petal.Length) %>% # this will select the columns you name. dont need the "quotes" in piping
+  slice(1:4) # slice the rows you want to keep
+subset_df2 # now display it
+```
+
+subset_df2 should be exactly the same as subset_df! There are advantages and disadvantages to each of the writing methods, but for now, it's personal preference. For example, Chris prefers the first method, while Jas and I prefer piping --- there is no wrong or right way! For the remainder of the tutorials we will use a mix of the two methods so that you can get practice with both.
+
+### Operations on Data
+Now that you know how to pull out the specific data you want to work with, we can start doing things to it. We can start with some basic examples adding and subtracting things.
+
+```{r operations 1}
+1 + 1 # literally just add these two things together
+
+# difference between the sepal and petal length
+Sepal.Petal.Diff <- iris[,"Sepal.Length"] - iris[,"Petal.Length"] # no row number means for every row
+Sepal.Petal.Diff 
+
+# can add this back into the iris dataset
+iris$Sepal.Petal.Diff <- iris[, "Sepal.Length"] - iris[, "Petal.Length"] 
+head(iris)
+
+# or do it with piping
+iris2 <- iris %>% # piping into itself will just update the object
+  mutate( # mutate means change existing column or create new column
+    Sepal.Petal.Diff = Sepal.Length - Petal.Length)
+head(iris2)
+```
+
+You can replace the subtraction line with really any level of complexity of operation. 
+
+#### A quick note on naming variables
+All the objects and variables we create using the assignment arrow (<-) need names. Every person since the dawn of R has been tempted to use names like these: data, data1, dat2, dt1, dt432, last_data, finalData, a, x, y... While, sure, you can use those kinds of names, good luck keeping track of what they mean and represent. Instead, consider using minimally descriptive names. So, above, we saw me represent the difference between sepal length and petal length as 'Sepal.Petal.Diff'. 'Sep.Pet.Diff' would probably also be a good one. Again, this is up to you, but just a friendly heads-up from tutors who have confused themselves many times over!
+
+### Unsure what to put here but more basic stuff they'll need...
+
+### Debugging: How to understand Error messages
+As with learning all languages, we are bound to make mistakes sometimes. When we do make a mistake, we will get an Error or a Warning and R will print these to the console. Fixing these errors is known as 'debugging'. You have to debug them before you progress because none of the code after the error will work until it's fixed. 
+
+Let's look at some common errors to learn how to understand and fix them.
+
+```{r debugging 1}
+print(new_variable)
+```
+This means that the variable, in this case 'new_variable', does not exist in the Environment. If you expected it to be in the environment, check for misspellings.
+
+```{r debugging 2}
+iris$Sepal.Other.Plus <- iris[,"Sepal.Length"] + iris[, "Other.Length"]
+```
+Undefined means R can't find it, so an 'undefined columns selected' means you're trying to select a column that isn't in the data. Check for misspellings, and check that you have assigned that column into the data before trying to use it.
+
+```{r debugging 3}
+setwd("C:/Users/myName/Desktop/ANM201/Nonexistant_folder") # remove the comment before running
+```
+
+This tells us that the named directory does not exist. Change the working directory to a location that does exist or create the correct folder you're expecting. (Check that you haven't specified a file by accident.)
+
+#### Helping yourself
+While chat-gpt is, of course, a cheat-code to writing all the code you could ever dream of, there are plenty of other (better) resources for  debugging your R code. 
+
+  * Inbuilt R help: If you are using a function you've forgotten details or structure for, you can type in ?nameoffunction into the console and this will bring up the documentation. Documentation is the instructions left by the creators of the code to help us debug it.
+  * Stack Overflow: A programming helping forum where people ask and answer each other's questions. If you run into a bug, we promise you NerdCoder97 definitely ran into the same issue back in 2006 and there'll be dozens of responses talking you through how to fix it.
+  * Reddit: Surprisingly (or unsurprisingly), Reddit is an amazing repository of coding knowledge. Search for your error with R and reddit in the query and you're bound to find FurryCoder97 talking about it.
+
+# Common ANM201 Tasks
+Now that we have an idea of some of the basic mechanics of R, we can start looking at the common tasks we'll encounter in the upcoming ANM201 lab reports. 
+
+## Plotting
+One of the most important parts of data analysis is data visualisation. The plots we will be making in this course are 'ggplot' plots and require the tidyverse package we loaded earlier. They are constructed by progressively adding details to the object.
+
+For these examples we will use the iris data we loaded earlier.
+
+### Basics of plotting
+```{r plotting 1, fig.width = 6, fig.height= 3}
+# basic plot with only one variable
+ggplot() + 
+  geom_point( # this is the type of plot we want to use
+    data = iris, # data is the data we want to use
+    aes(x = Sepal.Length, y = Sepal.Width) # aes(x, y) are the variables we want to plot
+  ) 
+```
+
+If we wanted to make a different plot we would use a different geom_XXX() definition.
+
+```{r plotting 2, fig.width = 6, fig.height= 3}
+ggplot() +
+  geom_boxplot(data = iris, aes(x = Sepal.Length, y = Sepal.Width)) # make a box plot
+
+ggplot() +
+  geom_line(data = iris, aes(x = Sepal.Length, y = Sepal.Width)) # or a line plot 
+```
+
+But those are bad ways to visualise the data. Let's stick with the original scatterplot. We can add a lot more to the plot such as labels and colours.
+
+```{r plotting 3, fig.width = 6, fig.height= 3}
+ggplot() +
+  geom_point(data = iris, aes(x = Sepal.Length, y = Sepal.Width), # same as before
+       colour = "goldenrod", # change the colour of the points (google 'ggplot2 colours' to get range of names)
+       shape = 8 # the shape of the point (again search for 'ggplot2 shapes')
+  ) + labs(
+    x = "Length of Sepal (cm)", # labels within quotes
+    y = "Width of Sepal (cm)",
+    title = "Sepal Length against Width"
+  )
+```
+
+It is possible to add a trend line by adding a geom_smooth() object to the plot as well.
+```{r plotting 5, fig.width = 6, fig.height= 3}
+ggplot() +
+  geom_point(data = iris, aes(x = Sepal.Length, y = Sepal.Width), colour = "tomato", shape = 16, alpha = 0.8) + # alpha adjusts the transparency of the points
+  geom_smooth(data = iris, aes(x = Sepal.Length, y = Sepal.Width), colour = "plum", fill = "goldenrod", method = "lm", linewidth = 1, alpha = 0.3) +
+  labs(x = "Length of Sepal (cm)", y = "Width of Sepal (cm)", title = "Sepal Length against Width with trendline")
+```
+
+Use the theme to improve the aesthetics of the overall plot.
+```{r plotting 6, fig.width = 6, fig.height= 3}
+ggplot() +
+  geom_point(data = iris, aes(x = Sepal.Length, y = Sepal.Width), colour = "tomato", shape = 16, alpha = 0.8) +
+  geom_smooth(data = iris, aes(x = Sepal.Length, y = Sepal.Width), colour = "plum", fill = "goldenrod", method = "lm", linewidth = 1) +
+  labs(x = "Length of Sepal (cm)", y = "Width of Sepal (cm)", title = "Sepal Length against Width with trendline") +
+  theme(
+    panel.background = element_rect(fill = "white"), # make the background all white
+    axis.line = element_line(color = "black", linewidth = 1) # add in thicker axis lines
+  )
+
+# or use a preexisting theme
+ggplot() +
+  geom_point(data = iris, aes(x = Sepal.Length, y = Sepal.Width), colour = "tomato", shape = 16, alpha = 0.8) +
+  geom_smooth(data = iris, aes(x = Sepal.Length, y = Sepal.Width), colour = "plum", fill = "goldenrod", method = "lm", linewidth = 1) +
+  labs(x = "Length of Sepal (cm)", y = "Width of Sepal (cm)", title = "Sepal Length against Width with trendline") +
+  theme_minimal() # there are several pre-made themes you can use
+```
+
+### Plotting multiple variables on the same axes
+Sometimes you want to display multiple variables on the same plot. We can go this by adding more geom_XXX() objects with different variables.
+```{r plotting 7, fig.width = 6, fig.height= 3}
+ggplot() +
+  # first data that we were looking at earlier
+  geom_point(data = iris, aes(x = Sepal.Length, y = Sepal.Width), colour = "tomato", shape = 16, alpha = 0.8) +
+  geom_smooth(data = iris, aes(x = Sepal.Length, y = Sepal.Width), colour = "plum", fill = "goldenrod", method = "lm", linewidth = 1) +
+  
+  # new data
+  geom_point(data = iris, aes(x = Petal.Length, y = Petal.Width), colour = "seagreen4", shape = 17, alpha = 0.8) +
+  geom_smooth(data = iris, aes(x = Petal.Length, y = Petal.Width), colour = "turquoise", fill = "lightblue", method = "lm", linewidth = 1, alpha = 0.8) +
+  
+  labs(x = "Length of Flower part (cm)", y = "Width of Flower part (cm)", title = "Length and Width of flower parts") +
+  theme(panel.background = element_rect(fill = "white"), axis.line = element_line(color = "black", linewidth = 1))
+```
+
+Looks good! But notice that it doesn't have a legend. To add a legend, we have to slightly rearrange the way we enter the information so that the colour becomes a variable.
+
+```{r plotting 8, fig.width = 6, fig.height= 3}
+ggplot() +
+  # move the colour variable inside of the geom_point's aes() and set it to the name of the variable
+  geom_point(data = iris, aes(x = Sepal.Length, y = Sepal.Width, colour = "Sepal"), shape = 16, alpha = 0.8) +
+  geom_smooth(data = iris, aes(x = Sepal.Length, y = Sepal.Width, colour = "Sepal"), fill = "goldenrod", method = "lm", linewidth = 1) +
+  
+  geom_point(data = iris, aes(x = Petal.Length, y = Petal.Width, colour = "Petal"), shape = 17, alpha = 0.8) +
+  geom_smooth(data = iris, aes(x = Petal.Length, y = Petal.Width, colour = "Petal"), fill = "lightblue", method = "lm", linewidth = 1, alpha = 0.8) +
+  
+  scale_color_manual(values=c("Sepal" = "tomato", "Petal" = "seagreen4")) + # here we define the colours more specifically
+  
+  labs(x = "Length of Flower part (cm)", y = "Width of Flower part (cm)", title = "Length and Width of flower parts", color = "Flower Part") + # set the legend name to the colour variable
+  theme(panel.background = element_rect(fill = "white"), axis.line = element_line(color = "black", linewidth = 1)) +
+  theme(
+    legend.position = "right",   # change to "none" to remove it
+    legend.background = element_rect(fill = "white", color = "black"),
+    legend.title = element_text(size = 10, face = "bold"),
+    legend.text = element_text(size = 8)
+  )
+```
+
+There's a lot more you can do to improve the aesthetics by adjusting the size, shape, and colour of each of the elements in the plot and we encourage you to play around with each of the variables. This cheat sheet https://posit.co/wp-content/uploads/2022/10/data-visualization-1.pdf is a great place to find more info!
+
+## Linear Models
+We've displayed trend lines on our plots, but we can do a lot more with those lines in our statistical analysis. We use a linear model when we want to understand how one or more *independent* variables influence the *dependent* variable. The basic structure for this in R is:
+
+```{r linear models 1}
+# model <- lm(dependent ~ independent, data = data)
+model <- lm(Sepal.Length ~ Sepal.Width, data = iris)
+summary(model) # displays the output for the model
+```
+The summary output for this model contains a lot of information. Let's break it down.
+![Understanding the summary output of a linear model](C:/Users/oaw001/OneDrive - University of the Sunshine Coast/Tutoring/Ecophys/images/Summary_of_lin_model.png)
+
+We can add multiple variables to the same model to see which of them is most explanatory.
+```{r linear models 2}
+model2 <- lm(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width, data = iris)
+summary(model2)
+```
+
+# I Like R - What Now?
+Hi! Welcome to the bottom of the document! If you made it this far you either read all of it or skimmed down lol. Either way, thank you for your time!
+
+If you liked what you read here, there's a whole world ahead of you to explore! The web is filled with fantastic free resources and blogs to learn new skills. Some of the places I might start are:
+
+* https://www.kaggle.com/discussions/getting-started/150283
+* https://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html
+* https://r-graph-gallery.com/ 
+
+Did you use this sheet, did it make sense, did you hate it? We want to hear your opinions! We constantly improve based on student opinions. Next time you're in a tute, let one of us know what you thought!

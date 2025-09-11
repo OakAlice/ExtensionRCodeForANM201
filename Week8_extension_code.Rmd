@@ -1,0 +1,200 @@
+---
+title: "Week 8 Extension Code"
+author: "Oakleigh Wilson"
+date: "`r Sys.Date()`"
+output:
+    word_document:
+      toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Automated Report Writing
+When I worked as a data analyst for an ecology consultancy, one of my main jobs was to explain clients' data to them. They would send me giant awful sprawling excel workbooks of years' worth of field annotations and I would wrangle, analyse, summarise, and visualise this as a streamlined report. After a hard fortnight's work, however, the client would inevitably change some detail and want me to do it all over again... Rather than writing a new report every time (copying in new stats and graphs after every change), I could make a "report scaffold" that would largely self-populate and save me heaps of time and error. I did this using the R functionality called "R Markdown".
+
+R Markdown is what this extension code is currently written in. It is essentially a syntax for writing text documents with embedded code and code output. In this extension code, we will look at R Markdowns basic functionality.
+
+## How to Open an R Markdown
+To open a new R Markdown file to follow along with, go to the file+ icon and select R Markdown. It will open a blank version of this file that you can mess around with. Select whether you want your final document rendered as a PDF, html, or word. When you've written your code in the interactive version of the file, you can then "knit" it to the render type. There should be a button for that in your task bar.
+
+To follow along with this tutorial and compare input with output, knit this current document.
+
+## Case Study Data
+For this example, we'll use the week 7 practice data again.
+```{r echo=FALSE}
+data <- read.csv("Week7_data.csv")
+```
+
+### Embedding Code
+The writing here is just plain text. To make it code, you need to wrap it in notation as below. The curly parentheses section "{r}" is where we can define some setting for our "chunk". The main options to be aware of are:
+- include = TRUE/FALSE -> whether the code and output appear in the final document. Defaults to true.
+- echo = TRUE/FALSE -> whether the code itself is shown (output still appears if include=TRUE). Defaults to true.
+- warning = TRUE/FALSE -> whether warnings from code execution are printed (error does the same for errors and message for messages)
+
+For example, to show the code and the output:
+```{r}
+data$BL[1]
+```
+Or to show the output but not the code:
+```{r include = TRUE, echo = FALSE}
+data$BL[1]
+```
+And then neither (but whatever it is is still run in the background):
+```{r include = FALSE, echo = FALSE}
+data$BL[1]
+```
+... obviously nothing will be displayed in the final render here.
+
+### Embedding Plots
+You can also embed graphs into your display and set echo = FALSE to prevent the source code from printing. Control the size of the graph in the options ({r}) section by specifying fig.width and/or fig.height. Remember to add your custom theme!
+
+```{r echo = FALSE, message=FALSE, fig.width = 8}
+library(tidyverse)
+
+my_theme <- function() {
+  theme_minimal(base_size = 10, base_family = "serif") +
+    theme(
+      panel.border = element_rect(color = "black", linewidth = 1.5, fill = NA),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      plot.background = element_blank(),
+      panel.background = element_blank(),
+      axis.line = element_line(color = "black"),
+      axis.ticks = element_line(color = "black"),
+      axis.title = element_text(size = 12),
+      axis.text = element_text(size = 12) 
+    )
+}
+my_colours = c("aquamarine3", "coral", "orchid3", "slateblue2", "goldenrod2")
+
+# Plot
+ggplot(data, aes(x = Mass, y = freq)) +
+  geom_point()+
+  geom_smooth(method= "lm", se = TRUE, color = "orchid3", fill = "goldenrod2") +
+  labs(x = "Mass", y = "Peak Frequency") +
+  my_theme()
+```
+
+### Extracting the stats automatically
+Thus far, to extract the stats from the linear models we have been generating, we have printed summary(model) and then visually inspected the output.
+
+```{r}
+mass_freq_model <- lm(freq ~ Mass, data = data)
+summary(mass_freq_model)
+```
+
+This method is time consuming and prone to human error. Instead, we could automatically extract these values.
+
+```{r}
+mass_freq_model <- lm(freq ~ Mass, data = data)
+model_summary <- summary(mass_freq_model)
+
+# extract everything from the model summary
+intercept <- model_summary$coefficients[1,1]
+slope <- model_summary$coefficients[2,1]
+
+adj_r2 <- model_summary$adj.r.squared
+rounded_adj_r2 <- round(adj_r2, 3)
+
+# F-statistic and p-value
+f_value <- model_summary$fstatistic[1]
+p_value <- model_summary$coefficients[2,4] 
+
+# print them out
+intercept
+slope
+rounded_adj_r2
+f_value
+p_value
+```
+
+### Putting the stats into a table
+Make it neater by coercing all the stats into a table.
+```{r}
+mass_freq_stats <- data.frame( # make a data.frame
+  Intercept = intercept, # column name and the variable
+  Slope = slope,
+  R2 = rounded_adj_r2,
+  F_value = f_value,
+  P_value = p_value
+)
+mass_freq_stats
+```
+
+#### Bonus Task 1
+The table above is pretty ugly and not appropriate for inclusion in a professional report. R Markdown uses the package 'kable' from package 'knitr' to make nice tables. You could google it and find some tutorials or something to make your table nicer.
+
+### Automating extraction across multiple variables
+The next step is to automate these analyses across multiple variables. Before we do it together, can you think of how you would do it yourself?
+
+There are many different ways to solve the same problem, but an intuitive way to do it might be with a very simple 'for loop'. A 'for loop' is a loop which iterates through a list of options. It follows this format:
+
+```{r}
+for (i in 1:3){ # for iterator in list of things to iterate across
+  print(i) # the task you want it to do
+}
+```
+
+For loops are slow and clunky when it comes to big data tasks, but for most small data things, they will be your friend. In this case, lets iterate across the different variables in our data and extract the slope from each.
+
+```{r}
+dependent_variables <- c("chirp", "freq")
+
+# make an empty data.frame to save your results in
+results <- data.frame(
+  Variable = character(),
+  Slope = numeric()
+)
+
+for (variable in dependent_variables) {
+  
+  # We can't just say "variable" in our formula because R will take it literally
+  # instead we can try building it as a formula and then feeding it in
+  # there are many other ways to do it too, but this one works
+  formula <- reformulate("Mass", response = variable)
+  
+  # Fit model
+  model <- lm(formula, data = data)
+  summary_model <- summary(model)
+  
+  # Extract statistics like we did above
+  slope <- coef(model)[2]
+  
+  # Add row to results using 'rbind' (literally row bind -- bind the rows together)
+  results <- rbind(results, data.frame(
+    Variable = variable,
+    Slope = slope
+  ))
+}
+results
+```
+
+#### Bonus Task 2
+Expand the system above to calculate more possible combinations of variables. You might want a system to test Mass, BL, FWW, and FWL against chirp and freq... how would these independent variables fit into the above formula reformulation? Could you nest multiple for loops inside each other?
+
+### Embedding the results in sentences
+At the end of the day, clients don't just want graphs and tables, they want plain English sentences. Your job as an ecologist is to take all the information from the data and summarise it to something the client can understand... That being said... if you're a lazy feral like me you can also partially automate this too lol. (In my defence, it eliminates human error!)
+
+```{r}
+for (i in 1:nrow(results)){
+  output <- results[i,]
+  variable <- output$Variable
+  valence <- ifelse(output$Slope>0, "positive", "negative")
+
+  print(paste0("The relationship between Mass and ", variable, " is ", valence, "."))
+}
+```
+And so on and so forth. In this particular example, it isn't very useful but I hope you can imagine the possible utility of this idea.
+
+#### Bonus Task 3
+Can you make print statements reporting the relationship and significance of each of the linear models we investigated? Include the stats in a print statement or a table.
+
+#### Bonus Tasks
+Why not try producing your Lab 4 report using R markdown?
+
+## Final Comments
+While this version has been rendered to a word document appropriate for inclusion in an ecology report, the sky is the limit with this tool. Instead of a word document you can render your files to a html (like a web page) and embed significantly more complex things - such as interactive graphs and dashboards. Check out this link for examples: https://rmarkdown.rstudio.com/gallery.html
+
+What you do with an R Markdown is limited only by your imagination and I hope you can think of many creative ways to use this fun tool :)
