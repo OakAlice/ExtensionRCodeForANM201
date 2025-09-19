@@ -49,77 +49,104 @@ data$DayNight <- ifelse(hour(data$gps_timestamp) > 6 & hour(data$gps_timestamp) 
 
 # Making a basic R shiny ---------------------------------------------------
 ## Define the UI -----------------------------------------------------------
+# Load libraries ------------------------------------------------------------
+library(shiny)      # For building the Shiny app
+library(ggplot2)    # For plotting
+library(dplyr)      # For data manipulation
+library(data.table) # If your data is a data.table
+
+# UI ------------------------------------------------------------------------
 ui <- fluidPage(
   
-  # Application title
+  # Application title displayed at the top
   titlePanel("Impala Movement Data Visualisation"),
   
-  sidebarLayout( # this is the overall layout function 
-    sidebarPanel( # this is specifically the side bar
-      # Dropdown to select individual ID
-      selectInput( # selectInput means this will be a toggle tool
-                  "idSelect", # give it an easy name
-                  "Select Individual:", # this is the name that is displayed to the user
-                  choices = sort(unique(data$ID)), # these are the options the user can select from
-                  selected = unique(data$ID)[1], # default option is always to display the first option
-                  multiple = TRUE), # allow multiple choice
-      
-      # Date range input
-      dateRangeInput( # this will create a calander style selection grid
-                    "dateRange", # again, internal tag
-                     "Select Date Range:", # displayed name
-                     start = min(data$Date), # when do you start it from
-                     end   = max(data$Date), # when do you end it to
-                     min   = min(data$Date),
-                     max   = max(data$Date))
+  # Layout with a sidebar and main panel
+  sidebarLayout(
     
+    # Sidebar panel contains all the input controls
+    sidebarPanel(
+      
+      # Dropdown to select one or more individual IDs
+      selectInput(
+        inputId = "idSelect",                     # Internal variable name
+        label = "Select Individual:",             # Label displayed in UI
+        choices = sort(unique(data$ID)),          # All unique IDs from your dataset
+        selected = unique(data$ID)[1],           # Default selection (first ID)
+        multiple = TRUE                           # Allow multiple IDs to be selected
+      ),
+      
+      # Calendar-style date range selector
+      dateRangeInput(
+        inputId = "dateRange",                    # Internal variable name
+        label = "Select Date Range:",             # Label in UI
+        start = min(data$Date),                   # Default start date
+        end   = max(data$Date),                   # Default end date
+        min   = min(data$Date),                   # Minimum date allowed
+        max   = max(data$Date)                    # Maximum date allowed
+      ),
+      
+      # Checkbox group for Day/Night selection
+      checkboxGroupInput(
+        inputId = "dayNight",                     # Internal variable name
+        label = "Select Day/Night:",              # Label in UI
+        choices = c("Day", "Night"),              # Options for selection
+        selected = c("Day", "Night")             # Default selection (both)
+      )
+      
     ),
     
-    mainPanel( # the main panel of the app shows the plot
-      # Display movement plot
-      plotOutput("movementPlot", height = "600px")
+    # Main panel displays the plot
+    mainPanel(
+      plotOutput(
+        outputId = "movementPlot",               # Must match the server output
+        height = "600px"                         # Height of the plot area
+      )
     )
   )
 )
 
-## Define the server -------------------------------------------------------
+# Server --------------------------------------------------------------------
 server <- function(input, output, session) {
   
-  # Event-driven filtered data
-  filteredData <- eventReactive(input$playButton, {
+  # Reactive expression to filter data based on user inputs
+  filteredData <- reactive({
+    # Require inputs to exist before running
     req(input$idSelect, input$dateRange, input$dayNight)
     
+    # Filter the data.table / data.frame
     data %>%
-      filter(ID %in% input$idSelect,
-             Date >= input$dateRange[1],
-             Date <= input$dateRange[2],
-             DayNight %in% input$dayNight) %>%
-      group_by(ID) %>%
-      filter(n() > 1) %>%
-      ungroup()
+      filter(ID %in% input$idSelect,                    # Keep only selected IDs
+             Date >= input$dateRange[1],               # Within start date
+             Date <= input$dateRange[2],               # Within end date
+             DayNight %in% input$dayNight) %>%         # Only selected day/night
+      group_by(ID) %>%                                 # Group by ID
+      filter(n() > 1) %>%                              # Remove groups with <2 points
+      ungroup()                                        # Ungroup for plotting
   })
   
-  # Render the plot
+  # Render the movement plot
   output$movementPlot <- renderPlot({
-    df <- filteredData()
-    req(nrow(df) > 0)  # make sure there’s data
+    df <- filteredData()          # Get filtered data
+    req(nrow(df) > 0)             # Only plot if there is data
     
+    # Create the ggplot
     ggplot(df, aes(x = lon, y = lat, color = ID, group = ID)) +
-      geom_path(alpha = 0.5) +
-      geom_point(size = 2) +
-      labs(x = "Longitude", y = "Latitude", color = "Individual ID") +
-      theme_minimal() +
-      theme(legend.position = "bottom")
+      geom_path(alpha = 0.5) +        # Draw paths connecting points for each ID
+      geom_point(size = 2) +          # Draw points for each GPS fix
+      labs(
+        x = "Longitude", 
+        y = "Latitude", 
+        color = "Individual ID"       # Legend label
+      ) +
+      theme_minimal() +               # Clean minimal theme
+      theme(legend.position = "bottom") # Put legend at bottom
   })
   
 }
 
-
-
-# Make the app ------------------------------------------------------------
+# Run the Shiny app ---------------------------------------------------------
 shinyApp(ui = ui, server = server)
-
-
 
 
 # (good data starts after the 2nd July btw)
